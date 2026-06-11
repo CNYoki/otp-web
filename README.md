@@ -49,6 +49,12 @@ cp otp.env.example otp.env        # then edit otp.env with your real accounts
 docker compose up -d --build
 ```
 
+A prebuilt image is published to GitHub Container Registry by CI on every push to `main`:
+
+```bash
+docker run -d -p 127.0.0.1:3000:3000 --env-file otp.env ghcr.io/cnyoki/otp-web:latest
+```
+
 The app is now reachable at `http://127.0.0.1:3000`. Point your reverse proxy at it, for example:
 
 ```nginx
