@@ -1,0 +1,12 @@
+# 避免把密钥和无关文件烤进镜像
+otp.env
+.dev.vars
+.dev.vars.example
+deploy
+local.html
+start.bat
+*.md
+.git
+.gitignore
+node_modules
+npm-debug.log

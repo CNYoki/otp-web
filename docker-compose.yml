@@ -1,0 +1,12 @@
+services:
+  otp:
+    build: .
+    image: otp-totp:latest
+    container_name: otp
+    restart: unless-stopped
+    # 真实密钥从这个文件注入，不进镜像、不进仓库
+    env_file:
+      - ./otp.env
+    # 只映射到宿主机回环，外网无法直连，仅 nginx 可反代
+    ports:
+      - "127.0.0.1:3000:3000"

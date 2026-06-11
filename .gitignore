@@ -1,0 +1,16 @@
+# ===== 密钥文件，绝不提交 =====
+otp.env            # docker compose 注入的真实账号密钥
+.dev.vars          # wrangler 本地调试密钥
+/etc/otp/otp.env   # 服务器上的密钥（仅作提醒，通常不在仓库内）
+
+# ===== Node =====
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# ===== 系统/编辑器 =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
