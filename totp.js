@@ -59,6 +59,39 @@ function normalizeAllowedGroups(account) {
     .filter(Boolean);
 }
 
+function optionalText(value) {
+  if (value === undefined || value === null || value === '') return '';
+  return String(value);
+}
+
+function normalizeDisplayFields(account) {
+  const fields = [];
+  const username = optionalText(account.username ?? account.user ?? account.account);
+  const password = optionalText(account.password ?? account.pass);
+  const note = optionalText(account.note ?? account.remark ?? account.notes);
+
+  if (username) fields.push({ label: '用户名', value: username });
+  if (password) fields.push({ label: '密码', value: password });
+  if (note) fields.push({ label: '备注', value: note });
+
+  const extra = account.fields;
+  if (Array.isArray(extra)) {
+    for (const item of extra) {
+      if (!item || typeof item !== 'object') continue;
+      const label = optionalText(item.label ?? item.name ?? item.key);
+      const value = optionalText(item.value);
+      if (label && value) fields.push({ label, value });
+    }
+  } else if (extra && typeof extra === 'object') {
+    for (const [label, value] of Object.entries(extra)) {
+      const text = optionalText(value);
+      if (label && text) fields.push({ label, value: text });
+    }
+  }
+
+  return fields;
+}
+
 // 把 config 里的一项标准化
 function normalize(account) {
   let base;
@@ -85,6 +118,7 @@ function normalize(account) {
     period: account.period || base.period,
     algorithm: (account.algorithm || base.algorithm).toUpperCase(),
     allowedGroups: normalizeAllowedGroups(account),
+    fields: normalizeDisplayFields(account),
   };
 }
 

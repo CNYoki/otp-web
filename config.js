@@ -14,6 +14,10 @@
 //      { uri: '...', allowedGroups: ['ops', 'admin'] }
 // 未配置 allowedGroups 时，登录用户默认都可查看。
 //
+// 每个账号也可选配置前端展示字段：
+//      { uri: '...', username: 'alice', password: 'pass', note: '后台账号' }
+// 额外字段可放在 fields: { "地址": "https://example.com" }
+//
 // secret 为 Base32 编码（一般是大写字母 A-Z 和数字 2-7）。
 // ============================================================
 

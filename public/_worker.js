@@ -64,7 +64,41 @@ function normalize(account) {
     digits: account.digits || base.digits,
     period: account.period || base.period,
     algorithm: (account.algorithm || base.algorithm).toUpperCase(),
+    fields: normalizeDisplayFields(account),
   };
+}
+
+function optionalText(value) {
+  if (value === undefined || value === null || value === '') return '';
+  return String(value);
+}
+
+function normalizeDisplayFields(account) {
+  const fields = [];
+  const username = optionalText(account.username ?? account.user ?? account.account);
+  const password = optionalText(account.password ?? account.pass);
+  const note = optionalText(account.note ?? account.remark ?? account.notes);
+
+  if (username) fields.push({ label: '用户名', value: username });
+  if (password) fields.push({ label: '密码', value: password });
+  if (note) fields.push({ label: '备注', value: note });
+
+  const extra = account.fields;
+  if (Array.isArray(extra)) {
+    for (const item of extra) {
+      if (!item || typeof item !== 'object') continue;
+      const label = optionalText(item.label ?? item.name ?? item.key);
+      const value = optionalText(item.value);
+      if (label && value) fields.push({ label, value });
+    }
+  } else if (extra && typeof extra === 'object') {
+    for (const [label, value] of Object.entries(extra)) {
+      const text = optionalText(value);
+      if (label && text) fields.push({ label, value: text });
+    }
+  }
+
+  return fields;
 }
 
 function getAccounts(env) {
@@ -121,7 +155,7 @@ export default {
 
     if (url.pathname === '/api/accounts') {
       const accounts = getAccounts(env).map((a) => ({
-        id: a.id, label: a.label, issuer: a.issuer, digits: a.digits, period: a.period,
+        id: a.id, label: a.label, issuer: a.issuer, digits: a.digits, period: a.period, fields: a.fields || [],
       }));
       return json({ accounts });
     }

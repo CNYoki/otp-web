@@ -28,7 +28,7 @@ function sendJSON(res, status, data) {
 
 // 仅返回前端展示需要的信息：绝不包含 secret
 function publicAccount(a) {
-  return { id: a.id, label: a.label, issuer: a.issuer, digits: a.digits, period: a.period };
+  return { id: a.id, label: a.label, issuer: a.issuer, digits: a.digits, period: a.period, fields: a.fields || [] };
 }
 
 function visibleAccounts(user) {

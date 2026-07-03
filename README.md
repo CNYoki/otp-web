@@ -35,14 +35,30 @@ Accounts are provided as a JSON array via the `OTP_ACCOUNTS` environment variabl
 
 ```json
 [
-  { "uri": "otpauth://totp/Google%3Ayou%40gmail.com?secret=YOURBASE32SECRET&issuer=Google", "allowedGroups": ["otp-admins"] },
-  { "label": "Example", "issuer": "Example", "secret": "GEZDGNBVGY3TQOJQ", "digits": 6, "period": 30, "algorithm": "SHA1" }
+  {
+    "uri": "otpauth://totp/Google%3Ayou%40gmail.com?secret=YOURBASE32SECRET&issuer=Google",
+    "username": "you@gmail.com",
+    "password": "account-password-or-empty",
+    "note": "Production account",
+    "allowedGroups": ["otp-admins"]
+  },
+  {
+    "label": "Example",
+    "issuer": "Example",
+    "secret": "GEZDGNBVGY3TQOJQ",
+    "digits": 6,
+    "period": 30,
+    "algorithm": "SHA1",
+    "fields": { "Console": "https://example.com" }
+  }
 ]
 ```
 
 `secret` is Base32 (the usual A–Z, 2–7). If `OTP_ACCOUNTS` is not set, the server falls back to a built-in Demo account so you can try it immediately.
 
 When OIDC is enabled, `allowedGroups` can be set per account. If it is omitted or empty, any logged-in user can view that account. The server also accepts `allowed_groups`, `group`, or `groups` as aliases in `OTP_ACCOUNTS`.
+
+Optional display fields are shown below the OTP code card for users who can view that account. Built-in aliases are `username` / `user` / `account`, `password` / `pass`, and `note` / `remark` / `notes`. Extra display rows can be added with `fields`, either as an object or as an array like `[{"label":"Console","value":"https://example.com"}]`.
 
 ## OIDC login for Docker / Node
 

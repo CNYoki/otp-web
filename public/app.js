@@ -66,6 +66,21 @@ function formatCode(code) {
   return code;
 }
 
+function renderAccountFields(fields) {
+  if (!Array.isArray(fields) || !fields.length) return '';
+  const rows = fields
+    .filter((item) => item && item.label && item.value)
+    .map(
+      (item) => `
+        <div class="detail-row">
+          <div class="detail-label">${escapeHtml(item.label)}</div>
+          <div class="detail-value">${escapeHtml(item.value)}</div>
+        </div>`
+    )
+    .join('');
+  return rows ? `<div class="account-details">${rows}</div>` : '';
+}
+
 function renderCard() {
   if (!accounts.length) {
     cardsEl.innerHTML = '<div class="empty">未配置或无权查看任何 OTP 账号</div>';
@@ -91,6 +106,7 @@ function renderCard() {
       </div>
       <div class="progress"><div class="progress-bar ${low ? 'low' : ''}" id="bar" style="width:${pct}%"></div></div>
       <div class="countdown"><span id="seconds">${data.secondsRemaining}</span> 秒后刷新</div>
+      ${renderAccountFields(acc.fields)}
     </div>`;
 
   document.getElementById('code').onclick = () => copyCode(data.code);
