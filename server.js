@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const config = require('./config');
 const { normalize, generateTOTP } = require('./totp');
+const { createAuth, parseOidcConfig } = require('./auth');
 
 // 启动时标准化所有账号（secret 只保留在内存中，不外发）
 const accounts = (config.accounts || []).map((a, i) => {
@@ -14,6 +15,7 @@ const accounts = (config.accounts || []).map((a, i) => {
 
 const PORT = process.env.PORT || config.port || 3000;
 const HOST = process.env.HOST || config.host || '127.0.0.1';
+const auth = createAuth(parseOidcConfig(process.env));
 
 function sendJSON(res, status, data) {
   const body = JSON.stringify(data);
@@ -29,18 +31,31 @@ function publicAccount(a) {
   return { id: a.id, label: a.label, issuer: a.issuer, digits: a.digits, period: a.period };
 }
 
+function visibleAccounts(user) {
+  return accounts.filter((a) => auth.canViewAccount(a, user));
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
+  if (url.pathname === '/healthz') {
+    return sendJSON(res, 200, { ok: true });
+  }
+
+  if (auth.handleRoute(req, res, url)) return;
+
+  const user = auth.enabled && url.pathname.startsWith('/api/') ? auth.requireUser(req, res, url) : null;
+  if (auth.enabled && url.pathname.startsWith('/api/') && !user) return;
+
   // 账号列表（不含密钥）
   if (url.pathname === '/api/accounts') {
-    return sendJSON(res, 200, { accounts: accounts.map(publicAccount) });
+    return sendJSON(res, 200, { accounts: visibleAccounts(user).map(publicAccount) });
   }
 
   // 当前所有验证码
   if (url.pathname === '/api/codes') {
     const now = Date.now();
-    const codes = accounts.map((a) => {
+    const codes = visibleAccounts(user).map((a) => {
       const { code, secondsRemaining, period, digits } = generateTOTP(a, now);
       return { id: a.id, label: a.label, issuer: a.issuer, code, secondsRemaining, period, digits };
     });
@@ -50,7 +65,7 @@ const server = http.createServer((req, res) => {
   // 单个账号验证码
   if (url.pathname === '/api/code') {
     const id = parseInt(url.searchParams.get('id'), 10);
-    const a = accounts.find((x) => x.id === id);
+    const a = visibleAccounts(user).find((x) => x.id === id);
     if (!a) return sendJSON(res, 404, { error: '账号不存在' });
     const { code, secondsRemaining, period, digits } = generateTOTP(a, Date.now());
     return sendJSON(res, 200, { id: a.id, label: a.label, issuer: a.issuer, code, secondsRemaining, period, digits });
@@ -80,4 +95,5 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`OTP 服务已启动: http://${HOST}:${PORT}`);
   console.log(`已加载 ${accounts.length} 个账号（密钥仅保存在服务端）`);
+  if (auth.enabled) console.log('OIDC 登录已启用');
 });

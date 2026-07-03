@@ -8,25 +8,37 @@ let accounts = [];
 let activeId = null;
 let latestCodes = {}; // id -> code 对象
 
+async function apiFetch(url) {
+  const res = await fetch(url);
+  if (res.status === 401) {
+    const returnTo = `${window.location.pathname}${window.location.search}` || '/';
+    window.location.href = `/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
+    throw new Error('unauthorized');
+  }
+  return res;
+}
+
 // 拉取账号列表（不含密钥）
 async function loadAccounts() {
-  const res = await fetch('/api/accounts');
+  const res = await apiFetch('/api/accounts');
   const data = await res.json();
   accounts = data.accounts || [];
-  if (accounts.length && activeId === null) activeId = accounts[0].id;
+  if (!accounts.some((a) => a.id === activeId)) activeId = accounts.length ? accounts[0].id : null;
   renderTabs();
+  renderCard();
 }
 
 // 拉取所有验证码
 async function loadCodes() {
   try {
-    const res = await fetch('/api/codes');
+    const res = await apiFetch('/api/codes');
     const data = await res.json();
     latestCodes = {};
-    for (const c of data.codes) latestCodes[c.id] = c;
+    for (const c of data.codes || []) latestCodes[c.id] = c;
     statusEl.textContent = '已连接 · ' + new Date().toLocaleTimeString();
     renderCard();
   } catch (e) {
+    if (e.message === 'unauthorized') return;
     statusEl.textContent = '连接失败，正在重试…';
   }
 }
@@ -56,7 +68,7 @@ function formatCode(code) {
 
 function renderCard() {
   if (!accounts.length) {
-    cardsEl.innerHTML = '<div class="empty">未配置任何 OTP 账号</div>';
+    cardsEl.innerHTML = '<div class="empty">未配置或无权查看任何 OTP 账号</div>';
     return;
   }
   const acc = accounts.find((a) => a.id === activeId);

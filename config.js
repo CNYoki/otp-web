@@ -10,6 +10,10 @@
 // 2) 手动填写字段：
 //      { label: '显示名称', secret: 'BASE32密钥', issuer: '可选', digits: 6, period: 30, algorithm: 'SHA1' }
 //
+// OIDC 启用后，每个账号可选 allowedGroups，限制哪些 OIDC group 可查看：
+//      { uri: '...', allowedGroups: ['ops', 'admin'] }
+// 未配置 allowedGroups 时，登录用户默认都可查看。
+//
 // secret 为 Base32 编码（一般是大写字母 A-Z 和数字 2-7）。
 // ============================================================
 

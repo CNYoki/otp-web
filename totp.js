@@ -49,6 +49,16 @@ function parseOtpauth(uri) {
   };
 }
 
+function normalizeAllowedGroups(account) {
+  const raw = account.allowedGroups ?? account.allowed_groups ?? account.groups ?? account.group;
+  if (raw === undefined || raw === null || raw === '') return [];
+  if (Array.isArray(raw)) return raw.map(String).map((x) => x.trim()).filter(Boolean);
+  return String(raw)
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
 // 把 config 里的一项标准化
 function normalize(account) {
   let base;
@@ -74,6 +84,7 @@ function normalize(account) {
     digits: account.digits || base.digits,
     period: account.period || base.period,
     algorithm: (account.algorithm || base.algorithm).toUpperCase(),
+    allowedGroups: normalizeAllowedGroups(account),
   };
 }
 
